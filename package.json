@@ -1,0 +1,14 @@
+{
+  "name": "sende-assistent",
+  "version": "1.0.0",
+  "description": "Sende-Assistent: richtet OBS Studio im Hintergrund ein und ersetzt den Bildmischer – Heavy Duty → Easy Access",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "test": "node test-demo.cjs",
+    "test:obs": "node test-obs.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}

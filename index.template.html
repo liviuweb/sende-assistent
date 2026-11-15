@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sende-Assistent – Prototyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/*STYLE*/</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand" id="brand"><span class="tally"></span><h1>Sende-Assistent</h1><small>Heavy Duty → Easy Access</small></div>
+    <span class="badge" id="modusBadge">nicht verbunden</span>
+    <div class="hstat">
+      <span>Ziel <b id="hZiel">1080p60</b></span>
+      <span>Einrichtung <b id="hZeit">0:00</b></span>
+      <span>Befehle <b id="hBefehle">0</b></span>
+    </div>
+  </header>
+
+  <nav>
+    <ol id="schritte">
+      <li data-s="0"><span class="lbl">Verbinden</span></li>
+      <li data-s="1"><span class="lbl">Kameras &amp; Mikros</span><span class="uc">UC1</span></li>
+      <li data-s="2"><span class="lbl">Ton einmessen</span><span class="uc">UC2</span></li>
+      <li data-s="3"><span class="lbl">Bildaufteilung</span><span class="uc">UC3</span></li>
+      <li data-s="4"><span class="lbl">Grafik</span><span class="uc">UC4</span></li>
+      <li data-s="5"><span class="lbl">Startcheck</span><span class="uc">UC5</span></li>
+      <li data-s="6"><span class="lbl">Live</span></li>
+      <li data-s="7"><span class="lbl">Ergebnis</span></li>
+    </ol>
+    <div class="navfuss">Du arbeitest nur hier. Alles, was rechts im Protokoll steht, erledigt der Assistent in OBS für dich.</div>
+  </nav>
+
+  <main>
+    <!-- 0 Verbinden -->
+    <section class="schritt aktiv" data-s="0">
+      <div class="kicker">Schritt 1 von 7</div>
+      <h2>Deine erste Sendung in wenigen Minuten</h2>
+      <p class="hilfe">Der Assistent richtet OBS Studio im Hintergrund ein: Kameras, Ton, Bildaufteilungen, Logo und Startcheck. Danach schaltest du live mit den Zifferntasten – wie an einem Bildmischer.</p>
+      <div class="zeile"><label class="feld" style="max-width:340px">Qualitätsstandard<select id="qualitaet"></select></label></div>
+      <div class="raster zwei">
+        <button class="modus" id="demoStart">
+          <span class="badge sim tag">Simulation</span>
+          <h3>Demo starten</h3>
+          <p>Ein simuliertes OBS mit vier Kameras und vier Tonquellen. Es versteht dieselben Befehle wie das echte Programm – ideal zum Vorführen.</p>
+        </button>
+        <div class="modus" id="echtKarte">
+          <span class="badge echt tag">Echtes OBS</span>
+          <h3>Mit OBS verbinden</h3>
+          <p>OBS ≥ 28 öffnen → <i>Werkzeuge → WebSocket-Server-Einstellungen</i> → „Server aktivieren“. Mehr musst du in OBS nicht anfassen.</p>
+          <div class="zeile" style="margin:6px 0 0"><label class="feld">Adresse<input type="text" id="url" value="ws://localhost:4455"></label><label class="feld">Passwort<input type="password" id="pw" placeholder="aus den OBS-Einstellungen"></label></div>
+          <div class="zeile" style="margin:4px 0 0"><button id="verbinden" class="gruen">Verbinden</button><span class="hinweis" id="echtHinweis"></span></div>
+        </div>
+      </div>
+      <div id="verbindenFehler"></div>
+      <div class="ablauf"><span>Kameras</span><span>Ton</span><span>Bildaufteilung</span><span>Grafik</span><span>Startcheck</span><span>Live</span></div>
+    </section>
+
+    <!-- 1 Geräte -->
+    <section class="schritt" data-s="1">
+      <div class="kicker">Schritt 2 von 7 · UC1</div>
+      <h2>Welche Kameras und Mikrofone hast du?</h2>
+      <p class="hilfe">Der Assistent hat diese Geräte an deinem Rechner gefunden. Jede Kamera geht: Webcam, Smartphone oder ein Camcorder per HDMI-Adapter.</p>
+      <div class="raster zwei">
+        <div class="karte">
+          <div class="zeile" style="margin-top:0"><label class="feld">Anzahl Kameras<select id="anzK"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label></div>
+          <div id="kamListe"></div>
+        </div>
+        <div class="karte">
+          <div class="zeile" style="margin-top:0"><label class="feld">Anzahl Mikrofone<select id="anzM"><option>1</option><option selected>2</option><option>3</option></select></label></div>
+          <div id="mikListe"></div>
+        </div>
+      </div>
+      <div class="zeile"><button id="quellenAnlegen">Quellen in OBS anlegen</button><span class="hinweis" id="quellenStatus"></span></div>
+      <div id="handyBox"></div>
+      <div class="kacheln" id="quellenKacheln"></div>
+      <div class="zeile"><button class="zweit" id="weiter1" disabled>Weiter zum Ton</button></div>
+    </section>
+
+    <!-- 2 Ton -->
+    <section class="schritt" data-s="2">
+      <div class="kicker">Schritt 3 von 7 · UC2</div>
+      <h2>Ton einmessen</h2>
+      <p class="hilfe">Sprich nach dem Klick 5 Sekunden in normaler Lautstärke. Der Assistent misst den Pegel und legt Rauschunterdrückung, Kompressor, Verstärkung und Limiter an – die Grundeinstellungen, für die sonst ein Tonpult zuständig ist.</p>
+      <div id="tonListe"></div>
+      <div class="zeile"><button class="zweit" id="weiter2">Weiter zur Bildaufteilung</button></div>
+    </section>
+
+    <!-- 3 Bild -->
+    <section class="schritt" data-s="3">
+      <div class="kicker">Schritt 4 von 7 · UC3</div>
+      <h2>Welche Bildaufteilungen brauchst du?</h2>
+      <p class="hilfe">Jede Aufteilung wird eine Szene und damit eine Taste beim Live-Schalten. Vollbild je Kamera ist immer dabei. Du kannst auch nichts auswählen.</p>
+      <div class="raster drei vl" id="vorlagen"></div>
+      <div class="zeile"><label class="feld">Großes / linkes Bild<select id="slotA"></select></label><label class="feld">Kleines / rechtes Bild<select id="slotB"></select></label></div>
+      <div class="zeile"><button id="szenenBauen">Szenen anlegen</button><span class="hinweis" id="szenenStatus"></span></div>
+      <div class="kacheln" id="szenenKacheln"></div>
+      <div class="zeile"><button class="zweit" id="weiter3" disabled>Weiter zur Grafik</button></div>
+    </section>
+
+    <!-- 4 Grafik -->
+    <section class="schritt" data-s="4">
+      <div class="kicker">Schritt 5 von 7 · UC4</div>
+      <h2>Logo einblenden</h2>
+      <p class="hilfe">Der Assistent prüft in allen Szenen, ob die Grafik ein kleines Kamerabild verdeckt – das prüfen weder OBS noch ein ATEM-Bildmischer – und schlägt eine freie Ecke vor.</p>
+      <div class="karte">
+        <div class="zeile" style="margin-top:0" id="logoDemoZeile">
+          <label class="feld">Bilddatei<input type="file" id="logoDatei" accept="image/*"></label>
+          <span class="hinweis" id="logoName">Ohne Auswahl nimmt der Assistent ein Beispiel-Logo.</span>
+        </div>
+        <div class="zeile" style="margin-top:0;display:none" id="logoPfadZeile">
+          <label class="feld">Pfad zur Bilddatei auf diesem Rechner<input type="text" id="logoPfad" placeholder="z. B. C:\Bilder\logo.png oder /Users/name/logo.png"></label>
+        </div>
+        <div class="zeile"><label class="feld" style="max-width:260px">Position<select id="logoEcke"><option value="ur">unten rechts</option><option value="ul">unten links</option><option value="or">oben rechts</option><option value="ol">oben links</option></select></label></div>
+        <div class="zeile" style="margin-bottom:0"><button id="logoEinfuegen">Einfügen &amp; prüfen</button><button class="zweit" id="grafikSkip">Ohne Logo weiter</button></div>
+      </div>
+      <div id="kollision"></div>
+      <div class="zeile"><button class="zweit" id="weiter4" style="display:none">Weiter zum Startcheck</button></div>
+    </section>
+
+    <!-- 5 Startcheck -->
+    <section class="schritt" data-s="5">
+      <div class="kicker">Schritt 6 von 7 · UC5</div>
+      <h2>Startcheck</h2>
+      <p class="hilfe">Wohin soll die Sendung gehen? Den Stream-Key findest du bei YouTube im Live-Dashboard, bei Twitch unter „Stream-Key“. Danach prüft der Assistent alles einmal durch. Live gehen kannst du erst, wenn nichts mehr rot ist.</p>
+      <div class="karte">
+        <div class="zeile" style="margin-top:0">
+          <label class="feld">Plattform<select id="plattform"><option value="rtmp://a.rtmp.youtube.com/live2">YouTube</option><option value="rtmp://live.twitch.tv/app">Twitch</option><option value="">Eigener RTMP-Server</option></select></label>
+          <label class="feld">Server<input type="text" id="server" value="rtmp://a.rtmp.youtube.com/live2"></label>
+        </div>
+        <div class="zeile"><label class="feld">Stream-Key<input type="password" id="key" placeholder="wird nur an dein OBS übergeben"></label></div>
+        <div class="zeile" style="margin-bottom:0">
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" id="nurAufnahme"> Nur aufnehmen, nicht streamen</label>
+          <button class="link" id="demoKey" style="display:none">Demo-Key einsetzen</button>
+        </div>
+        <div class="zeile" style="margin-bottom:0"><button id="pruefen">Speichern &amp; prüfen</button><span class="hinweis" id="pruefStatus"></span></div>
+      </div>
+      <div class="ampel" id="ampel"></div>
+      <div class="zeile"><button class="live" id="liveGehen" disabled>Live gehen</button><span class="hinweis" id="liveHinweis"></span></div>
+      <div class="demofehler" id="demoFehler" style="display:none">
+        <span>Für die Vorführung: Fehler auslösen und zeigen, dass der Live-Knopf sperrt →</span>
+        <button class="zweit klein" id="fMute">Mikro stumm schalten</button>
+        <button class="zweit klein" id="fKamera">Kamera abziehen</button>
+      </div>
+    </section>
+
+    <!-- 6 Live -->
+    <section class="schritt" data-s="6">
+      <div class="kicker">Live · Bildmischer-Ersatz</div>
+      <div class="onair"><span class="lamp">ON AIR</span><span class="zeit" id="liveZeit">00:00:00</span><span class="hinweis" id="liveZiel"></span><span class="rest">Schnitte <b id="schnitte">0</b></span></div>
+      <div class="zeile" style="margin-top:0;justify-content:space-between">
+        <span class="hinweis">Tasten <b>1–9</b> oder Klick schalten. Rot = auf Sendung.</span>
+        <div class="seg" id="uebergang"><button data-u="cut" class="an">CUT</button><button data-u="auto">AUTO 0,3 s</button></div>
+      </div>
+      <div class="multiview" id="multiview"></div>
+      <div class="raster zwei" style="margin-top:16px" id="livePegel"></div>
+      <div class="zeile" style="margin-top:20px"><button class="zweit" id="beenden">Sendung beenden</button></div>
+    </section>
+
+    <!-- 7 Ergebnis -->
+    <section class="schritt" data-s="7">
+      <div class="kicker">Ergebnis</div>
+      <h2>Sendung beendet</h2>
+      <p class="hilfe">So viel hat der Assistent dir abgenommen.</p>
+      <div class="zahlen" id="zahlen"></div>
+      <div class="karte">
+        <h3 style="font-size:15px;margin-bottom:6px">Was in dieser Sendung ersetzt wurde</h3>
+        <table class="ersatz">
+          <thead><tr><th>Heavy Duty (Studio-Inventar)</th><th>Hier</th></tr></thead>
+          <tbody>
+            <tr><td>ATEM 2 M/E Production Studio 4K + 1 M/E Advanced Panel</td><td>Szenentasten 1–9 mit CUT / AUTO</td></tr>
+            <tr><td>Sony LMD-2451W als Multiview</td><td>Vorschaukacheln je Szene</td></tr>
+            <tr><td>Behringer X32 Compact (Gain, Dynamik, Limiter)</td><td>Auto-Pegel und Filterkette je Mikro</td></tr>
+            <tr><td>Panasonic AJ-PX270 + SDI</td><td>Webcam, Smartphone (VDO.Ninja) oder Camcorder per HDMI-Adapter</td></tr>
+            <tr><td>Bildtechnik prüft vor der Sendung</td><td>Startcheck mit Ampel und Sperre</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="zeile"><button id="nochmal">Neue Einrichtung</button></div>
+    </section>
+  </main>
+
+  <aside>
+    <div class="titel"><h3>OBS im Hintergrund</h3><span class="badge" id="obsVersion">–</span></div>
+    <div class="monitor" id="monitor"><canvas id="pgm" width="640" height="360" data-program="1"></canvas><div class="leer" id="pgmLeer">Noch nicht verbunden</div></div>
+    <div class="szenenzeile"><span>Szene: <b id="pgmSzene">–</b></span><span class="pgmlbl" id="pgmLbl">PROGRAMM</span></div>
+    <div class="null"><b>0</b> Klicks in OBS – alles läuft über den Assistenten</div>
+    <div class="logteil">
+      <div class="logkopf"><h3 style="font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Befehle an OBS (obs-websocket v5)</h3><span class="zaehler"><b id="nBefehle">0</b></span></div>
+      <pre id="log"></pre>
+    </div>
+  </aside>
+</div>
+<script>/*OBSWS*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>/*APP*/</script>
+</body>
+</html>
